@@ -21,6 +21,8 @@ The package currently provides:
 - core models: `Stream`, `StreamEvent`, `StreamParticipant`;
 - stream backend contract: `StreamBackendInterface`;
 - stream context contract: `StreamContextInterface`;
+- view renderer contract: `ViewRendererInterface`;
+- widget template override contract: `WidgetTemplateResolverInterface`;
 - plugin contracts and plugin definition pipeline;
 - slot tree building and validation;
 - command bus and an always-on `CoreStreamPlugin` with basic write commands;
@@ -107,7 +109,7 @@ Rendering currently works like this:
 1. `StreamPageRenderer` renders the root wrapper.
 2. It starts rendering from the `main` root slot.
 3. `SlotRenderer` resolves widgets for the slot from the validated slot tree.
-4. `WidgetRenderAdapterInterface` is responsible for rendering each widget with the actual template engine.
+4. `WidgetRenderAdapterInterface` is responsible for instantiating a widget and returning its `RenderResult`.
 
 Nested slot rendering is expected to be implemented by bridges. For example:
 
@@ -115,6 +117,8 @@ Nested slot rendering is expected to be implemented by bridges. For example:
 - a Blade bridge can expose a directive or helper with the same purpose.
 
 The core does not know Twig or Blade syntax.
+
+Widgets may declare template maps per renderer name through `getTemplates()`. The actual renderer implementation is resolved from `StreamContextInterface` through `ViewRendererInterface`.
 
 ## What the Integrator Must Provide
 
@@ -150,21 +154,48 @@ This context is passed through runtime, backend calls, command handlers, and wid
 
 ### 3. `WidgetRenderAdapterInterface`
 
-This is the rendering bridge between the core and your template engine.
+This is the runtime adapter that turns a widget class into a `RenderResult`.
 
 Examples:
 
-- Twig adapter;
-- Blade adapter;
-- custom renderer.
+- service-container-aware widget adapter;
+- simple in-memory adapter for tests;
+- framework-specific widget resolver.
 
 The adapter is responsible for:
 
-- locating the right widget template;
-- rendering it with the template engine;
-- exposing nested slot rendering helpers if needed.
+- resolving widget instances;
+- executing widget `render(...)`;
+- returning a `RenderResult` that can be handled by the renderer pipeline.
 
-### 4. Plugin Configuration
+### 4. `ViewRendererInterface`
+
+This is the template-engine-facing renderer used from widget code.
+
+Examples:
+
+- Twig view renderer;
+- Blade view renderer;
+- simple HTML renderer.
+
+Widgets can declare a template map per renderer name:
+
+```php
+[
+    'twig' => '...',
+    'blade' => '...',
+]
+```
+
+The active renderer is passed through `StreamContextInterface`.
+
+### 5. `WidgetTemplateResolverInterface` (optional)
+
+If your application needs to override widget templates, you may provide a template resolver.
+
+This allows project-level template overrides without changing the widget class itself.
+
+### 6. Plugin Configuration
 
 Your application decides which plugins are enabled.
 
@@ -175,7 +206,7 @@ The typical flow is:
 3. build and validate the slot tree;
 4. create `PluginManager` for resolved plugin metadata and assets.
 
-### 5. Command Bus Wiring
+### 7. Command Bus Wiring
 
 You must instantiate the command handlers that should exist in your application and build the bus through:
 
@@ -184,7 +215,7 @@ You must instantiate the command handlers that should exist in your application 
 
 The factory ensures only handlers from enabled plugins are accepted.
 
-### 6. Root Render Wiring
+### 8. Root Render Wiring
 
 To render a page you need to wire:
 
@@ -204,9 +235,11 @@ At a high level, a minimal setup looks like this:
 4. Build plugin definitions.
 5. Build slot tree.
 6. Build plugin manager.
-7. Create command handlers and build the command bus.
-8. Open a `StreamRuntime` through `StreamService`.
-9. Render the page through `StreamPageRenderer`.
+7. Provide `ViewRendererInterface` through your context.
+8. Optionally provide `WidgetTemplateResolverInterface`.
+9. Create command handlers and build the command bus.
+10. Open a `StreamRuntime` through `StreamService`.
+11. Render the page through `StreamPageRenderer`.
 
 ## Assets
 
@@ -220,6 +253,10 @@ The core does not generate framework-specific public asset paths.
 - CSS files.
 
 Any normalization, filesystem layout, bundling, or public path generation must be handled by the consuming framework or build tooling.
+
+The always-on `CoreStreamPlugin` also exposes the base frontend runtime asset:
+
+- `src/Core/Plugins/CoreStream/Resources/public/stream-hub.js`
 
 ## Commands
 

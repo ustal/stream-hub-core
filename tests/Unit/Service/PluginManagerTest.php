@@ -35,7 +35,7 @@ class PluginManagerTest extends TestCase
             [
                 'class' => CoreStreamPlugin::class,
                 'name' => CoreStreamPlugin::getName(),
-                'js' => [],
+                'js' => ['src/Core/Plugins/CoreStream/Resources/public/stream-hub.js'],
                 'css' => [],
             ],
             $manager->getPublicAssets()[CoreStreamPlugin::getName()]

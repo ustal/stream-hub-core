@@ -43,7 +43,7 @@ class StreamPageRendererTest extends TestCase
         $html = $pageRenderer->render($runtime, new InMemoryUserContext());
 
         $this->assertSame(
-            '<div class="stream-hub"><div>Main</div></div>',
+            '<div class="stream-hub" data-stream-hub-root><div>Main</div></div>',
             $html
         );
     }

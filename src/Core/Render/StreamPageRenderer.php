@@ -15,7 +15,7 @@ final class StreamPageRenderer implements StreamPageRendererInterface
     public function render(StreamRuntime $runtime, StreamContextInterface $context): string
     {
         return sprintf(
-            '<div class="stream-hub">%s</div>',
+            '<div class="stream-hub" data-stream-hub-root>%s</div>',
             $this->slotRenderer->render(DefaultSlotName::MAIN, $runtime, $context)
         );
     }
