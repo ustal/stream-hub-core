@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use Ustal\StreamHub\Component\Enum\DefaultSlotName;
 use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
 use Ustal\StreamHub\Component\Service\SlotTreeBuilder;
+use Ustal\StreamHub\Core\Plugins\CoreStream\CoreStreamPlugin;
 use Ustal\StreamHub\Core\Render\Renderer;
 use Ustal\StreamHub\Core\Render\SlotRenderer;
 use Ustal\StreamHub\Core\Render\StreamPageRenderer;
@@ -21,7 +22,7 @@ class StreamPageRendererTest extends TestCase
 {
     public function testItWrapsMainSlotOutputIntoRootContainer(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [DefinitionTestPlugin::class],
             [DefaultSlotName::MAIN]
         );

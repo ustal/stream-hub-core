@@ -13,7 +13,7 @@ class PluginManagerTest extends TestCase
 {
     public function testItExposesResolvedPluginsAndBuildsPublicAssetsMapFromStaticCapabilities(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [AssetPlugin::class],
             [DefaultSlotName::MAIN]
         );

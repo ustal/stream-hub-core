@@ -25,7 +25,7 @@ final class SlotRenderer implements SlotRendererInterface
             }
 
             $html .= $this->renderer->render(
-                $this->widgetRenderAdapter->render($assignment->widgetClass, $runtime, $context)
+                $this->widgetRenderAdapter->render($assignment->widgetClass, $runtime->getStream(), $context)
             );
         }
 

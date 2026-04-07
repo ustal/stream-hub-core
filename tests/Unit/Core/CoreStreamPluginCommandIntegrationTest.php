@@ -10,6 +10,7 @@ use Ustal\StreamHub\Component\Model\StreamEventCollection;
 use Ustal\StreamHub\Component\Model\StreamParticipant;
 use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
 use Ustal\StreamHub\Core\Command\CommandBusFactory;
+use Ustal\StreamHub\Core\Plugins\CoreStream\CoreStreamPlugin;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommand;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommandHandler;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\CreateStreamCommand;
@@ -25,7 +26,7 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
     {
         $backend = new InMemoryStreamBackend();
         $backend->seedStream($this->createStream('stream-1'), unreadEventCount: 2);
-        $registry = (new PluginDefinitionBuilder())->build([]);
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build([]);
 
         $bus = (new CommandBusFactory())->create($registry, [
             new CreateStreamCommandHandler($backend),

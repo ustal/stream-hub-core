@@ -20,7 +20,7 @@ class PluginDefinitionBuilderTest extends TestCase
 {
     public function testBuildEnablesAllPluginWidgetsByDefault(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [DefinitionTestPlugin::class],
             [DefaultSlotName::MAIN]
         );
@@ -40,7 +40,7 @@ class PluginDefinitionBuilderTest extends TestCase
 
     public function testBuildCanEnableOnlyConfiguredWidgets(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [[
                 'class' => DefinitionTestPlugin::class,
                 'widgets' => [
@@ -62,9 +62,9 @@ class PluginDefinitionBuilderTest extends TestCase
         );
     }
 
-    public function testBuildAlwaysRegistersCorePluginFirst(): void
+    public function testBuildRegistersRequiredPluginFirst(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [DefinitionTestPlugin::class],
             [DefaultSlotName::MAIN]
         );
@@ -81,7 +81,7 @@ class PluginDefinitionBuilderTest extends TestCase
         $this->expectException(PluginConfigurationException::class);
         $this->expectExceptionMessage('is not declared by plugin');
 
-        (new PluginDefinitionBuilder())->build(
+        (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [[
                 'class' => DefinitionTestPlugin::class,
                 'widgets' => [OrphanWidget::class],
@@ -95,7 +95,7 @@ class PluginDefinitionBuilderTest extends TestCase
         $this->expectException(PluginConfigurationException::class);
         $this->expectExceptionMessage('targets unknown slot');
 
-        (new PluginDefinitionBuilder())->build(
+        (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [[
                 'class' => OrphanWidgetPlugin::class,
                 'widgets' => [OrphanWidget::class],
@@ -109,7 +109,7 @@ class PluginDefinitionBuilderTest extends TestCase
         $this->expectException(PluginConfigurationException::class);
         $this->expectExceptionMessage('cannot be replaced by more than one widget');
 
-        (new PluginDefinitionBuilder())->build(
+        (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [ConflictingReplacePlugin::class],
             [DefaultSlotName::MAIN]
         );
@@ -117,7 +117,7 @@ class PluginDefinitionBuilderTest extends TestCase
 
     public function testWidgetRegistryIndexesEnabledWidgetClassesBySlot(): void
     {
-        $registry = (new PluginDefinitionBuilder())->build(
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
             [[
                 'class' => DefinitionTestPlugin::class,
                 'widgets' => [

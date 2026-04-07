@@ -3,9 +3,9 @@
 namespace Ustal\StreamHub\Component\Render;
 
 use Ustal\StreamHub\Component\Context\StreamContextInterface;
-use Ustal\StreamHub\Core\StreamRuntime;
+use Ustal\StreamHub\Component\Model\Stream;
 
 interface WidgetRenderAdapterInterface
 {
-    public function render(string $widgetClass, StreamRuntime $runtime, StreamContextInterface $context): RenderResult;
+    public function render(string $widgetClass, Stream $stream, StreamContextInterface $context): RenderResult;
 }
