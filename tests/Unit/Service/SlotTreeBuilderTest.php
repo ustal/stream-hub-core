@@ -4,6 +4,7 @@ namespace Ustal\StreamHub\Tests\Unit\Service;
 
 use PHPUnit\Framework\TestCase;
 use Ustal\StreamHub\Component\Enum\DefaultSlotName;
+use Ustal\StreamHub\Component\Enum\WidgetPlacementMode;
 use Ustal\StreamHub\Component\Exception\PluginConfigurationException;
 use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
 use Ustal\StreamHub\Component\Service\SlotTreeBuilder;
@@ -72,5 +73,37 @@ class SlotTreeBuilderTest extends TestCase
         );
 
         (new SlotTreeBuilder())->build($registry, [DefaultSlotName::MAIN]);
+    }
+
+    public function testBuildUsesConfiguredWidgetSlotAndPlacementOverrides(): void
+    {
+        $registry = (new PluginDefinitionBuilder())->build(
+            [[
+                'class' => DefinitionTestPlugin::class,
+                'widgets' => [
+                    MainContainerWidget::class,
+                    [
+                        'class' => DetailsWidget::class,
+                        'slot' => DefaultSlotName::MAIN,
+                        'placement' => WidgetPlacementMode::APPEND,
+                    ],
+                ],
+            ]],
+            [DefaultSlotName::MAIN]
+        );
+
+        $tree = (new SlotTreeBuilder())->build($registry, [DefaultSlotName::MAIN]);
+
+        $this->assertSame(
+            [
+                MainContainerWidget::class,
+                DetailsWidget::class,
+            ],
+            array_map(
+                static fn ($assignment): string => $assignment->widgetClass,
+                $tree->getAssignmentsForSlot(DefaultSlotName::MAIN)
+            )
+        );
+        $this->assertSame([], $tree->getAssignmentsForSlot(TestSlot::DETAILS));
     }
 }

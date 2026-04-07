@@ -26,8 +26,9 @@ final class SlotTreeBuilder
         $slotAcceptanceModes = $slotAcceptanceModes ?? [];
 
         foreach ($registry->all() as $definition) {
-            foreach ($definition->widgetClasses as $widgetClass) {
-                $targetSlot = $widgetClass::getSlot()->value;
+            foreach ($definition->widgets as $widgetDefinition) {
+                $widgetClass = $widgetDefinition->class;
+                $targetSlot = $widgetDefinition->targetSlot;
                 $providedSlots = $widgetClass::provideSlots();
 
                 foreach ($providedSlots as $providedSlot) {
@@ -41,7 +42,7 @@ final class SlotTreeBuilder
                     pluginId: $definition->id,
                     widgetClass: $widgetClass,
                     targetSlot: $targetSlot,
-                    placementMode: $widgetClass::getPlacementMode(),
+                    placementMode: $widgetDefinition->placementMode,
                     providedSlots: $providedSlots,
                 );
 

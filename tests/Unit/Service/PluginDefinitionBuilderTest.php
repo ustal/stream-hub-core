@@ -4,6 +4,7 @@ namespace Ustal\StreamHub\Tests\Unit\Service;
 
 use PHPUnit\Framework\TestCase;
 use Ustal\StreamHub\Component\Enum\DefaultSlotName;
+use Ustal\StreamHub\Component\Enum\WidgetPlacementMode;
 use Ustal\StreamHub\Component\Exception\PluginConfigurationException;
 use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
 use Ustal\StreamHub\Component\Widget\WidgetRegistry;
@@ -60,6 +61,29 @@ class PluginDefinitionBuilderTest extends TestCase
             ],
             $definition->widgetClasses
         );
+    }
+
+    public function testBuildCanOverrideWidgetPlacementConfiguration(): void
+    {
+        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build(
+            [[
+                'class' => DefinitionTestPlugin::class,
+                'widgets' => [[
+                    'class' => DetailsWidget::class,
+                    'slot' => DefaultSlotName::MAIN,
+                    'placement' => WidgetPlacementMode::REPLACE,
+                ]],
+            ]],
+            [DefaultSlotName::MAIN]
+        );
+
+        $definition = $registry->get(DefinitionTestPlugin::getName());
+
+        $this->assertCount(1, $definition->widgets);
+        $this->assertSame(DetailsWidget::class, $definition->widgets[0]->class);
+        $this->assertSame(DefaultSlotName::MAIN->value, $definition->widgets[0]->targetSlot);
+        $this->assertSame(WidgetPlacementMode::REPLACE, $definition->widgets[0]->placementMode);
+        $this->assertSame([DetailsWidget::class], $definition->widgetClasses);
     }
 
     public function testBuildRegistersRequiredPluginFirst(): void

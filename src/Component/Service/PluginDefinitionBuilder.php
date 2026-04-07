@@ -3,6 +3,7 @@
 namespace Ustal\StreamHub\Component\Service;
 
 use Ustal\StreamHub\Component\Exception\PluginConfigurationException;
+use Ustal\StreamHub\Component\Enum\WidgetPlacementMode;
 use Ustal\StreamHub\Component\Plugin\StreamPluginInterface;
 use Ustal\StreamHub\Component\Widget\StreamWidgetInterface;
 
@@ -16,7 +17,7 @@ final class PluginDefinitionBuilder
     }
 
     /**
-     * @param array<int, class-string<StreamPluginInterface>|array{class: class-string<StreamPluginInterface>, widgets?: array<class-string<StreamWidgetInterface>>, is_default?: bool}> $plugins
+     * @param array<int, class-string<StreamPluginInterface>|array{class: class-string<StreamPluginInterface>, widgets?: array<int|string, class-string<StreamWidgetInterface>|array{class?: class-string<StreamWidgetInterface>, slot?: \BackedEnum, placement?: WidgetPlacementMode}>, is_default?: bool}> $plugins
      * @param array<\BackedEnum> $rootSlots
      * @return PluginDefinitionRegistry
      */
@@ -29,6 +30,7 @@ final class PluginDefinitionBuilder
                 $pluginClass::getName(),
                 $pluginClass,
                 $pluginClass::getCommandHandlers(),
+                $this->resolveEnabledWidgets($pluginClass, $pluginClass::getWidgets()),
                 $pluginClass::getWidgets(),
                 true,
             ));
@@ -43,12 +45,17 @@ final class PluginDefinitionBuilder
             }
 
             $widgets = $pluginConfig['widgets'] ?? $class::getWidgets();
+            $resolvedWidgets = $this->resolveEnabledWidgets($class, $widgets);
 
             $registry->add(new PluginDefinition(
                 $class::getName(),
                 $class,
                 $class::getCommandHandlers(),
-                $this->resolveEnabledWidgets($class, $widgets),
+                $resolvedWidgets,
+                array_map(
+                    static fn (WidgetDefinition $definition): string => $definition->class,
+                    $resolvedWidgets
+                ),
                 $pluginConfig['is_default'] ?? false,
             ));
         }
@@ -59,8 +66,8 @@ final class PluginDefinitionBuilder
     }
 
     /**
-     * @param class-string<StreamPluginInterface>|array{class: class-string<StreamPluginInterface>, widgets?: array<class-string<StreamWidgetInterface>>, is_default?: bool} $plugin
-     * @return array{class: class-string<StreamPluginInterface>, widgets?: array<class-string<StreamWidgetInterface>>, is_default?: bool}
+     * @param class-string<StreamPluginInterface>|array{class: class-string<StreamPluginInterface>, widgets?: array<int|string, class-string<StreamWidgetInterface>|array{class?: class-string<StreamWidgetInterface>, slot?: \BackedEnum, placement?: WidgetPlacementMode}>, is_default?: bool} $plugin
+     * @return array{class: class-string<StreamPluginInterface>, widgets?: array<int|string, class-string<StreamWidgetInterface>|array{class?: class-string<StreamWidgetInterface>, slot?: \BackedEnum, placement?: WidgetPlacementMode}>, is_default?: bool}
      */
     private function normalizePluginConfig(string|array $plugin): array
     {
@@ -73,15 +80,18 @@ final class PluginDefinitionBuilder
 
     /**
      * @param class-string<StreamPluginInterface> $pluginClass
-     * @param array<class-string<StreamWidgetInterface>> $enabledWidgets
-     * @return array<class-string<StreamWidgetInterface>>
+     * @param array<int|string, class-string<StreamWidgetInterface>|array{class?: class-string<StreamWidgetInterface>, slot?: \BackedEnum, placement?: WidgetPlacementMode}> $enabledWidgets
+     * @return WidgetDefinition[]
      */
     private function resolveEnabledWidgets(string $pluginClass, array $enabledWidgets): array
     {
         $availableWidgets = $pluginClass::getWidgets();
         $availableWidgetMap = array_fill_keys($availableWidgets, true);
+        $resolved = [];
 
-        foreach ($enabledWidgets as $widgetClass) {
+        foreach ($enabledWidgets as $key => $widgetConfig) {
+            [$widgetClass, $normalizedWidgetConfig] = $this->normalizeWidgetConfig($key, $widgetConfig);
+
             if (!isset($availableWidgetMap[$widgetClass])) {
                 throw new PluginConfigurationException(sprintf(
                     'Widget %s is not declared by plugin %s.',
@@ -89,8 +99,63 @@ final class PluginDefinitionBuilder
                     $pluginClass
                 ));
             }
+
+            $resolved[] = new WidgetDefinition(
+                class: $widgetClass,
+                targetSlot: $this->resolveWidgetSlot($widgetClass, $normalizedWidgetConfig),
+                placementMode: $this->resolveWidgetPlacementMode($widgetClass, $normalizedWidgetConfig),
+            );
         }
 
-        return $enabledWidgets;
+        return $resolved;
+    }
+
+    /**
+     * @param int|string $key
+     * @param class-string<StreamWidgetInterface>|array{class?: class-string<StreamWidgetInterface>, slot?: \BackedEnum, placement?: WidgetPlacementMode} $widgetConfig
+     * @return array{class-string<StreamWidgetInterface>, array{slot?: \BackedEnum, placement?: WidgetPlacementMode}}
+     */
+    private function normalizeWidgetConfig(int|string $key, string|array $widgetConfig): array
+    {
+        if (is_string($widgetConfig)) {
+            return [$widgetConfig, []];
+        }
+
+        if (isset($widgetConfig['class'])) {
+            $widgetClass = $widgetConfig['class'];
+            unset($widgetConfig['class']);
+
+            return [$widgetClass, $widgetConfig];
+        }
+
+        if (!is_string($key)) {
+            throw new PluginConfigurationException('Widget configuration array must declare a class.');
+        }
+
+        return [$key, $widgetConfig];
+    }
+
+    /**
+     * @param array{slot?: \BackedEnum, placement?: WidgetPlacementMode} $widgetConfig
+     */
+    private function resolveWidgetSlot(string $widgetClass, array $widgetConfig): string
+    {
+        if (isset($widgetConfig['slot'])) {
+            return $widgetConfig['slot']->value;
+        }
+
+        return $widgetClass::getSlot()->value;
+    }
+
+    /**
+     * @param array{slot?: \BackedEnum, placement?: WidgetPlacementMode} $widgetConfig
+     */
+    private function resolveWidgetPlacementMode(string $widgetClass, array $widgetConfig): WidgetPlacementMode
+    {
+        if (isset($widgetConfig['placement'])) {
+            return $widgetConfig['placement'];
+        }
+
+        return $widgetClass::getPlacementMode();
     }
 }
