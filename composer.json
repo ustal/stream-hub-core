@@ -1,0 +1,35 @@
+{
+  "name": "ustal/stream-hub-core",
+  "description": "StreamHub core: event-driven interaction engine with plugin system",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "phpstan/phpstan": "^1.10",
+    "deptrac/deptrac": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ustal\\StreamHub\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Ustal\\StreamHub\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "test-unit": "phpunit --testsuite=unit",
+    "test-integration": "phpunit --testsuite=integration",
+    "stan": "phpstan analyse",
+    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs-fix": "php-cs-fixer fix",
+    "deptrac": "deptrac analyse"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

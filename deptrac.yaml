@@ -1,0 +1,36 @@
+deptrac:
+  paths:
+    - ./src
+    - ./tests
+
+  layers:
+    - name: Core
+      collectors:
+        - type: classLike
+          value: ^Ustal\\StreamHub\\Core\\
+
+    - name: Component
+      collectors:
+        - type: classLike
+          value: ^Ustal\\StreamHub\\Component\\
+
+    - name: Tests
+      collectors:
+        - type: classLike
+          value: ^Ustal\\StreamHub\\Tests\\
+
+    - name: External
+      collectors:
+        - type: classLike
+          value: ^(PHPUnit\\|Psr\\)
+
+  ruleset:
+    Core:
+      - Component   # 👈 ВОТ ЭТО КЛЮЧЕВОЕ
+
+    Component: ~
+
+    Tests:
+      - Core
+      - Component
+      - External
