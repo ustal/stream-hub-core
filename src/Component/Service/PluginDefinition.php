@@ -13,6 +13,7 @@ final readonly class PluginDefinition
      * @param array<class-string<StreamCommandHandlerInterface>> $handlerClasses
      * @param WidgetDefinition[] $widgets
      * @param array<class-string<StreamWidgetInterface>> $widgetClasses
+     * @param list<string> $identifierGeneratorRequirements
      */
     public function __construct(
         public string $id,
@@ -21,5 +22,6 @@ final readonly class PluginDefinition
         public array $widgets,
         public array $widgetClasses,
         public bool $isDefault = false,
+        public array $identifierGeneratorRequirements = [],
     ) {}
 }

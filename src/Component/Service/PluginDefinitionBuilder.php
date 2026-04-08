@@ -4,6 +4,7 @@ namespace Ustal\StreamHub\Component\Service;
 
 use Ustal\StreamHub\Component\Exception\PluginConfigurationException;
 use Ustal\StreamHub\Component\Enum\WidgetPlacementMode;
+use Ustal\StreamHub\Component\Plugin\RequiresIdentifierGeneratorsInterface;
 use Ustal\StreamHub\Component\Plugin\StreamPluginInterface;
 use Ustal\StreamHub\Component\Widget\StreamWidgetInterface;
 
@@ -33,6 +34,7 @@ final class PluginDefinitionBuilder
                 $this->resolveEnabledWidgets($pluginClass, $pluginClass::getWidgets()),
                 $pluginClass::getWidgets(),
                 true,
+                $this->resolveIdentifierGeneratorRequirements($pluginClass),
             ));
         }
 
@@ -57,6 +59,7 @@ final class PluginDefinitionBuilder
                     $resolvedWidgets
                 ),
                 $pluginConfig['is_default'] ?? false,
+                $this->resolveIdentifierGeneratorRequirements($class),
             ));
         }
 
@@ -157,5 +160,29 @@ final class PluginDefinitionBuilder
         }
 
         return $widgetClass::getPlacementMode();
+    }
+
+    /**
+     * @param class-string<StreamPluginInterface> $pluginClass
+     * @return list<string>
+     */
+    private function resolveIdentifierGeneratorRequirements(string $pluginClass): array
+    {
+        if (!is_subclass_of($pluginClass, RequiresIdentifierGeneratorsInterface::class)) {
+            return [];
+        }
+
+        $requirements = $pluginClass::getIdentifierGeneratorRequirements();
+
+        foreach ($requirements as $requirement) {
+            if (!is_string($requirement) || $requirement === '') {
+                throw new PluginConfigurationException(sprintf(
+                    'Plugin %s must declare non-empty identifier generator requirement names.',
+                    $pluginClass
+                ));
+            }
+        }
+
+        return array_values(array_unique($requirements));
     }
 }

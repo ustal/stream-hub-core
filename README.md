@@ -23,6 +23,11 @@ The package currently provides:
 - stream context contract: `StreamContextInterface`;
 - view renderer contract: `ViewRendererInterface`;
 - widget template override contract: `WidgetTemplateResolverInterface`;
+- identifier generator contract: `IdentifierGeneratorInterface`;
+- built-in identifier generators:
+  - `RandomHexIdentifierGenerator`
+  - `UuidV4IdentifierGenerator`
+  - `UuidV7IdentifierGenerator`
 - plugin contracts and plugin definition pipeline;
 - slot tree building and validation;
 - command bus and an always-on `CoreStreamPlugin` with basic write commands;
@@ -71,6 +76,19 @@ These are core models, not persistence models. Your application is free to store
   - `message`
   - `system`
 
+### Identifier Generation
+
+The core keeps identifiers as strings and does not force one global format.
+
+Instead it provides:
+
+- `IdentifierGeneratorInterface`
+- random hex identifiers
+- UUIDv4 identifiers
+- UUIDv7 identifiers
+
+Framework integrations may map named plugin identifier requirements to any of these built-in generators or to application-defined generator services.
+
 ### Plugins
 
 Plugins are the main extension unit.
@@ -82,6 +100,8 @@ A plugin may provide:
 - JS assets;
 - CSS assets;
 - template files for one or more rendering bridges.
+
+If a plugin needs configurable identifier policies, it may implement `RequiresIdentifierGeneratorsInterface` and declare named generator requirements such as `event_id`, `stream_id`, or `attachment_id`.
 
 The package also includes an always-on `CoreStreamPlugin`. It is registered automatically and cannot be disabled. It provides the basic write-side stream commands and handlers.
 

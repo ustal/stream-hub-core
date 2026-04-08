@@ -6,7 +6,7 @@ use Ustal\StreamHub\Component\CommandBus\StreamCommandHandlerInterface;
 use Ustal\StreamHub\Component\CommandBus\StreamCommandInterface;
 use Ustal\StreamHub\Component\Context\StreamContextInterface;
 
-class CommandBus implements CommandBusInterface
+class CommandBus implements CommandBusInterface, ModelCommandBusInterface
 {
     /** @var array<class-string<StreamCommandInterface>, StreamCommandHandlerInterface> */
     private array $map = [];
