@@ -8,9 +8,7 @@ use Ustal\StreamHub\Component\Model\Stream;
 use Ustal\StreamHub\Component\Model\StreamEvent;
 use Ustal\StreamHub\Component\Model\StreamEventCollection;
 use Ustal\StreamHub\Component\Model\StreamParticipant;
-use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
-use Ustal\StreamHub\Core\Command\CommandBusFactory;
-use Ustal\StreamHub\Core\Plugins\CoreStream\CoreStreamPlugin;
+use Ustal\StreamHub\Core\Command\CommandBus;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommand;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommandHandler;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\CreateStreamCommand;
@@ -22,13 +20,11 @@ use Ustal\StreamHub\Tests\Fake\InMemoryUserContext;
 
 class CoreStreamPluginCommandIntegrationTest extends TestCase
 {
-    public function testCorePluginIsEnabledByDefaultAndHandlesCreateAppendAndMarkReadCommands(): void
+    public function testCoreLowLevelHandlersHandleCreateAppendAndMarkReadCommands(): void
     {
         $backend = new InMemoryStreamBackend();
         $backend->seedStream($this->createStream('stream-1'), unreadEventCount: 2);
-        $registry = (new PluginDefinitionBuilder([CoreStreamPlugin::class]))->build([]);
-
-        $bus = (new CommandBusFactory())->create($registry, [
+        $bus = new CommandBus([
             new CreateStreamCommandHandler($backend),
             new AppendStreamEventCommandHandler($backend),
             new MarkStreamReadCommandHandler($backend),

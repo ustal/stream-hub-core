@@ -3,14 +3,8 @@
 namespace Ustal\StreamHub\Tests\Unit\Command;
 
 use PHPUnit\Framework\TestCase;
-use Ustal\StreamHub\Component\Exception\PluginConfigurationException;
-use Ustal\StreamHub\Component\Service\PluginDefinitionBuilder;
 use Ustal\StreamHub\Core\Command\CommandBus;
-use Ustal\StreamHub\Core\Command\CommandBusFactory;
-use Ustal\StreamHub\Tests\Fake\CommandEnabledPlugin;
 use Ustal\StreamHub\Tests\Fake\InMemoryUserContext;
-use Ustal\StreamHub\Tests\Fake\OtherCommandPlugin;
-use Ustal\StreamHub\Tests\Fake\RecordingOtherCommandHandler;
 use Ustal\StreamHub\Tests\Fake\RecordingTestCommandHandler;
 use Ustal\StreamHub\Tests\Fake\SecondRecordingTestCommandHandler;
 use Ustal\StreamHub\Tests\Fake\TestCommand;
@@ -44,42 +38,6 @@ class CommandBusTest extends TestCase
         new CommandBus([
             new RecordingTestCommandHandler(),
             new SecondRecordingTestCommandHandler(),
-        ]);
-    }
-
-    public function testFactoryBuildsBusFromEnabledPluginHandlers(): void
-    {
-        $registry = (new PluginDefinitionBuilder())->build([
-            CommandEnabledPlugin::class,
-            OtherCommandPlugin::class,
-        ]);
-
-        $testHandler = new RecordingTestCommandHandler();
-        $otherHandler = new RecordingOtherCommandHandler();
-
-        $bus = (new CommandBusFactory())->create($registry, [
-            $testHandler,
-            $otherHandler,
-        ]);
-
-        $bus->handle(new TestCommand('via-factory'), new InMemoryUserContext('user-7'));
-
-        $this->assertSame('via-factory', $testHandler->handledPayload);
-        $this->assertSame('user-7', $testHandler->handledUserId);
-        $this->assertFalse($otherHandler->handled);
-    }
-
-    public function testFactoryRejectsHandlerFromDisabledPlugin(): void
-    {
-        $this->expectException(PluginConfigurationException::class);
-        $this->expectExceptionMessage('is not declared by any enabled plugin');
-
-        $registry = (new PluginDefinitionBuilder())->build([
-            CommandEnabledPlugin::class,
-        ]);
-
-        (new CommandBusFactory())->create($registry, [
-            new RecordingOtherCommandHandler(),
         ]);
     }
 }
