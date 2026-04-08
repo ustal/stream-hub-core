@@ -25,6 +25,10 @@ The package currently provides:
   - `CommandBusInterface`
   - `ModelCommandBusInterface`
   - `CommandBus`
+  - `GuardedCommandBus`
+- guard contracts for high-level commands:
+  - `StreamCommandGuardInterface`
+  - `GuardDecision`
 - low-level core commands and handlers:
   - create stream
   - join stream
@@ -40,6 +44,8 @@ The package currently provides:
 
 - Core models are not persistence entities.
 - Project-specific enrichment belongs in backend adapters and mappers.
+- High-level feature commands may be guarded before handler execution.
+- Low-level model commands should stay internal and should not be guarded.
 - High-level feature workflows should orchestrate low-level core commands instead of writing directly to storage when a generic low-level command already exists.
 - Business authorization rules should live in the application or policy layer, not in the backend contract.
 
