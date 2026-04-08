@@ -13,6 +13,8 @@ use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommand;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\AppendStreamEventCommandHandler;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\CreateStreamCommand;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\CreateStreamCommandHandler;
+use Ustal\StreamHub\Core\Plugins\CoreStream\Command\LeaveStreamCommand;
+use Ustal\StreamHub\Core\Plugins\CoreStream\Command\LeaveStreamCommandHandler;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\MarkStreamReadCommand;
 use Ustal\StreamHub\Core\Plugins\CoreStream\Command\MarkStreamReadCommandHandler;
 use Ustal\StreamHub\Tests\Fake\InMemoryStreamBackend;
@@ -27,6 +29,7 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
         $bus = new CommandBus([
             new CreateStreamCommandHandler($backend),
             new AppendStreamEventCommandHandler($backend),
+            new LeaveStreamCommandHandler($backend),
             new MarkStreamReadCommandHandler($backend),
         ]);
 
@@ -40,6 +43,7 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
         $bus->handle(
             new CreateStreamCommand(
                 context: new InMemoryUserContext(),
+                streamId: 'stream-created',
                 participants: [$participant],
             ),
             new InMemoryUserContext()
@@ -64,6 +68,16 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
         );
 
         $bus->handle(
+            new LeaveStreamCommand(
+                context: new InMemoryUserContext(),
+                streamId: 'stream-created',
+                userId: 'user-1',
+                leftAt: new \DateTimeImmutable('2026-04-07T13:10:00+00:00'),
+            ),
+            new InMemoryUserContext()
+        );
+
+        $bus->handle(
             new MarkStreamReadCommand(
                 context: new InMemoryUserContext(),
                 streamId: 'stream-1',
@@ -73,6 +87,10 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
 
         $this->assertSame(1, $backend->getCreateStreamCallCount());
         $this->assertSame([$participant], $backend->getLastCreatedParticipants());
+        $createdStream = $backend->getStream(new InMemoryUserContext(), 'stream-created');
+        $this->assertNotNull($createdStream);
+        $this->assertFalse($createdStream->participants[0]->active);
+        $this->assertNotNull($createdStream->participants[0]->leftAt);
         $this->assertSame($event, $backend->getLastAppendedEvent());
         $this->assertSame(1, $backend->getMarkReadCallCount('stream-1'));
         $this->assertSame(0, $backend->getUnreadEventCountForStream(new InMemoryUserContext(), 'stream-1'));

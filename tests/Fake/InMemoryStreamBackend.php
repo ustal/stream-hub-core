@@ -34,13 +34,13 @@ final class InMemoryStreamBackend implements StreamBackendInterface
         $this->unreadEventCountByStream[$stream->id] = $unreadEventCount;
     }
 
-    public function createStream(StreamContextInterface $context, array $participants): Stream
+    public function createStream(StreamContextInterface $context, string $streamId, array $participants): Stream
     {
         $this->createStreamCallCount++;
         $this->lastCreatedParticipants = $participants;
 
         $stream = new Stream(
-            id: 'stream-' . (count($this->streams) + 1),
+            id: $streamId,
             participants: $participants,
             events: new StreamEventCollection(),
             createdAt: new \DateTimeImmutable(),
@@ -56,6 +56,41 @@ final class InMemoryStreamBackend implements StreamBackendInterface
     {
         $stream = $this->streams[$streamId];
         $participants = [...$stream->participants, $participant];
+
+        $updated = new Stream(
+            id: $stream->id,
+            participants: $participants,
+            events: $stream->events,
+            createdAt: $stream->createdAt,
+            updatedAt: new \DateTimeImmutable(),
+        );
+
+        $this->streams[$streamId] = $updated;
+
+        return $updated;
+    }
+
+    public function leaveStream(StreamContextInterface $context, string $streamId, string $userId, \DateTimeImmutable $leftAt): Stream
+    {
+        $stream = $this->streams[$streamId];
+        $participants = array_map(
+            static function (StreamParticipant $participant) use ($userId, $leftAt): StreamParticipant {
+                if ($participant->userId !== $userId) {
+                    return $participant;
+                }
+
+                return new StreamParticipant(
+                    userId: $participant->userId,
+                    displayName: $participant->displayName,
+                    active: false,
+                    createdAt: $participant->createdAt,
+                    settings: $participant->settings,
+                    leftAt: $leftAt,
+                    lastReadAt: $participant->lastReadAt,
+                );
+            },
+            $stream->participants
+        );
 
         $updated = new Stream(
             id: $stream->id,

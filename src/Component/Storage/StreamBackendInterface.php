@@ -13,9 +13,11 @@ interface StreamBackendInterface
     /**
      * @param StreamParticipant[] $participants
      */
-    public function createStream(StreamContextInterface $context, array $participants): Stream;
+    public function createStream(StreamContextInterface $context, string $streamId, array $participants): Stream;
 
     public function joinStream(StreamContextInterface $context, string $streamId, StreamParticipant $participant): Stream;
+
+    public function leaveStream(StreamContextInterface $context, string $streamId, string $userId, \DateTimeImmutable $leftAt): Stream;
 
     public function getStream(StreamContextInterface $context, string $streamId): ?Stream;
 
