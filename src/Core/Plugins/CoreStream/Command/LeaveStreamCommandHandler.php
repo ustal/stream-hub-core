@@ -7,7 +7,7 @@ use Ustal\StreamHub\Component\CommandBus\StreamCommandInterface;
 use Ustal\StreamHub\Component\Context\StreamContextInterface;
 use Ustal\StreamHub\Component\Storage\StreamBackendInterface;
 
-final readonly class CreateStreamCommandHandler implements StreamCommandHandlerInterface
+final readonly class LeaveStreamCommandHandler implements StreamCommandHandlerInterface
 {
     public function __construct(private StreamBackendInterface $backend)
     {
@@ -15,15 +15,15 @@ final readonly class CreateStreamCommandHandler implements StreamCommandHandlerI
 
     public function handle(StreamCommandInterface $command, StreamContextInterface $context): void
     {
-        if (!$command instanceof CreateStreamCommand) {
+        if (!$command instanceof LeaveStreamCommand) {
             throw new \LogicException('Unexpected command type.');
         }
 
-        $this->backend->createStream($command->context, $command->streamId, $command->participants);
+        $this->backend->leaveStream($command->context, $command->streamId, $command->userId, $command->leftAt);
     }
 
     public static function supports(): string
     {
-        return CreateStreamCommand::class;
+        return LeaveStreamCommand::class;
     }
 }

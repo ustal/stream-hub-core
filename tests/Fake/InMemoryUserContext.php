@@ -22,20 +22,6 @@ final readonly class InMemoryUserContext implements StreamContextInterface
         return $this->actor;
     }
 
-    public function generateUrl(string $name, array $parameters = []): string
-    {
-        if ($parameters === []) {
-            return '/generated/' . $name;
-        }
-
-        return '/generated/' . $name . '?' . http_build_query($parameters);
-    }
-
-    public function getCsrfToken(string $intention): ?string
-    {
-        return 'csrf-' . $intention;
-    }
-
     public function has(string $key): bool
     {
         return array_key_exists($key, $this->values);
