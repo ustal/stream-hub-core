@@ -26,6 +26,9 @@ The package currently provides:
   - `ModelCommandBusInterface`
   - `CommandBus`
   - `GuardedCommandBus`
+- thin application facade:
+  - `StreamHubInterface`
+  - `StreamHub`
 - guard contracts for high-level commands:
   - `StreamCommandGuardInterface`
   - `GuardDecision`
