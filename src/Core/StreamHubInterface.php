@@ -12,6 +12,8 @@ interface StreamHubInterface
 
     public function getStream(string $streamId): ?Stream;
 
+    public function viewStream(string $streamId): ?Stream;
+
     public function getStreams(): StreamCollection;
 
     public function getUnreadStreamCount(): int;

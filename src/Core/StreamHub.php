@@ -27,6 +27,19 @@ final readonly class StreamHub implements StreamHubInterface
         return $this->backend->getStream($this->context, $streamId);
     }
 
+    public function viewStream(string $streamId): ?Stream
+    {
+        $stream = $this->backend->getStream($this->context, $streamId);
+
+        if ($stream === null) {
+            return null;
+        }
+
+        $this->backend->markRead($this->context, $streamId);
+
+        return $this->backend->getStream($this->context, $streamId);
+    }
+
     public function getStreams(): StreamCollection
     {
         return $this->backend->getStreams($this->context);

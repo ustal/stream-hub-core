@@ -56,4 +56,31 @@ final class StreamHubTest extends TestCase
         self::assertSame(3, $streamHub->getUnreadEventCount());
         self::assertSame(3, $streamHub->getUnreadEventCountForStream('stream-1'));
     }
+
+    public function testItCanViewStreamAndMarkItAsRead(): void
+    {
+        $backend = new InMemoryStreamBackend();
+        $context = new InMemoryUserContext();
+        $stream = new Stream(
+            id: 'stream-1',
+            participants: [
+                new StreamParticipant(
+                    userId: 'user-1',
+                    displayName: 'User 1',
+                    active: true,
+                    createdAt: new \DateTimeImmutable('-1 hour'),
+                ),
+            ],
+            events: new StreamEventCollection(),
+            createdAt: new \DateTimeImmutable('-1 hour'),
+            updatedAt: new \DateTimeImmutable(),
+        );
+        $backend->seedStream($stream, 3);
+
+        $streamHub = new StreamHub(new CommandBus([]), $backend, $context);
+
+        self::assertSame($stream, $streamHub->viewStream('stream-1'));
+        self::assertSame(0, $streamHub->getUnreadEventCountForStream('stream-1'));
+        self::assertSame(1, $backend->getMarkReadCallCount('stream-1'));
+    }
 }

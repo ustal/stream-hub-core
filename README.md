@@ -29,6 +29,7 @@ The package currently provides:
 - thin application facade:
   - `StreamHubInterface`
   - `StreamHub`
+  - `viewStream()` for read-and-mark-read flow
 - guard contracts for high-level commands:
   - `StreamCommandGuardInterface`
   - `GuardDecision`
