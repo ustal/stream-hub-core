@@ -31,5 +31,10 @@
     "deptrac": "deptrac analyse"
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "extra": {
+    "branch-alias": {
+      "dev-v1": "1.1.x-dev"
+    }
+  }
 }
