@@ -20,6 +20,7 @@ final readonly class AppendStreamEventCommandHandler implements StreamCommandHan
         }
 
         $this->backend->appendEvent($command->context, $command->streamId, $command->event);
+        $this->backend->markRead($command->context, $command->streamId);
     }
 
     public static function supports(): string

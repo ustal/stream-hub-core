@@ -92,7 +92,7 @@ class CoreStreamPluginCommandIntegrationTest extends TestCase
         $this->assertFalse($createdStream->participants[0]->active);
         $this->assertNotNull($createdStream->participants[0]->leftAt);
         $this->assertSame($event, $backend->getLastAppendedEvent());
-        $this->assertSame(1, $backend->getMarkReadCallCount('stream-1'));
+        $this->assertSame(2, $backend->getMarkReadCallCount('stream-1'));
         $this->assertSame(0, $backend->getUnreadEventCountForStream(new InMemoryUserContext(), 'stream-1'));
     }
 
